@@ -11,22 +11,19 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("autocomplete")
 class AutoCompleteRestController {
 
-    var scrabbleList = emptyList<String>()
+    private final val scrabbles = CodeChallengeUtil.readTextFileToList(AUTOCOMPLETE_FILE_NAME)
 
     companion object {
         const val AUTOCOMPLETE_FILE_NAME = "scrabble.txt"
-    }
-
-    init {
-        scrabbleList = CodeChallengeUtil.readTextFileToList(AUTOCOMPLETE_FILE_NAME)
+        const val SUGGESTIONS_COUNT = 10
     }
 
     @GetMapping("/{partialWord}")
     fun getAutoCompletion(@PathVariable partialWord: String): ResponseEntity<List<String>> {
-        val suggestions = scrabbleList
-            .filter { it.startsWith(partialWord, true) }
-            .sorted()
-            .take(10)
+        val suggestions = scrabbles.prefixMap(partialWord)
+            .keys
+            .take(SUGGESTIONS_COUNT)
+            .toList()
 
         return if (suggestions.isNotEmpty()) {
             ResponseEntity.ok(suggestions)
